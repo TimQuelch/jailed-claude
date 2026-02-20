@@ -66,6 +66,7 @@
           {
             bashInteractive,
             claude-code,
+            coreutils,
             curl,
             diffutils,
             fd,
@@ -81,6 +82,7 @@
             less,
             nix,
             ps,
+            python3,
             ripgrep,
             tree,
             unzip,
@@ -93,6 +95,7 @@
             [
               base # from default basePermisisons
               fake-passwd # from default basePermisisons
+              (ro-bind "${coreutils}/bin/env" "/usr/bin/env") # some scripts rely on this
               network
               time-zone
               no-new-session
@@ -116,6 +119,7 @@
                   less
                   nix
                   ps
+                  python3
                   ripgrep
                   tree
                   unzip
