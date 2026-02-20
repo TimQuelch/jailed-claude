@@ -1,0 +1,180 @@
+{
+  description = "jailed claude";
+
+  inputs = {
+    nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
+    jail-nix.url = "sourcehut:~alexdavid/jail.nix";
+    llm-agents.url = "github:numtide/llm-agents.nix";
+    llm-agents.inputs.nixpkgs.follows = "nixpkgs";
+    pre-commit.url = "github:cachix/git-hooks.nix";
+    pre-commit.inputs.nixpkgs.follows = "nixpkgs";
+  };
+
+  outputs =
+    {
+      self,
+      nixpkgs,
+      jail-nix,
+      llm-agents,
+      pre-commit,
+      ...
+    }:
+    let
+      systems = [
+        "aarch64-linux"
+        "x86_64-linux"
+        "aarch64-darwin"
+        "x86_64-darwin"
+      ];
+      mkPkgs =
+        system:
+        import nixpkgs {
+          inherit system;
+          config.allowUnfree = true;
+          overlays = [ self.overlays.default ];
+        };
+      forEachSystem = fn: nixpkgs.lib.genAttrs systems (system: fn (mkPkgs system));
+
+      preCommit =
+        # all src for check, empty for devShell
+        pkgs: src:
+        pre-commit.lib.${pkgs.stdenv.hostPlatform.system}.run {
+          inherit src;
+          hooks = {
+            nixfmt.enable = true;
+          };
+        };
+
+      pname = "jailed-claude";
+    in
+    {
+      lib.makeJailedClaude =
+        {
+          pkgs,
+          extraPkgs ? [ ],
+        }:
+        let
+          jail = jail-nix.lib.extend {
+            inherit pkgs;
+            # strip out the default and configure it all in the function the default base includes
+            # mounting only the wrapped exes closure from the nix store, but it's much easier if we
+            # just mount the entire store.
+            basePermissions = combinators: [ ];
+          };
+        in
+        (pkgs.callPackage (
+          {
+            bashInteractive,
+            curl,
+            diffutils,
+            fd,
+            findutils,
+            gawkInteractive,
+            git,
+            gnugrep,
+            gnutar,
+            gzip,
+            jq,
+            nix,
+            ps,
+            ripgrep,
+            unzip,
+            wget,
+            which,
+            # default to the pinned llm-agents version, however if using the overlay, then this will
+            # be overwritten by any claude-code package that is included in the final overlay set.
+            claude-code ? llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.claude-code,
+          }:
+          (jail pname claude-code (
+            with jail.combinators;
+            [
+              base # from default basePermisisons
+              fake-passwd # from default basePermisisons
+              network
+              time-zone
+              no-new-session
+              mount-cwd
+              (add-pkg-deps (
+                [
+                  bashInteractive
+                  curl
+                  diffutils
+                  fd
+                  findutils
+                  gawkInteractive
+                  git
+                  gnugrep
+                  gnutar
+                  gzip
+                  jq
+                  nix
+                  ps
+                  ripgrep
+                  unzip
+                  wget
+                  which
+                ]
+                ++ extraPkgs
+              ))
+
+              # forward git config
+              (add-runtime ''
+                TMP_FILE=$(mktemp)
+                printf "[user]\nname = %s\nemail = %s" \
+                    "$(git config user.name)" \
+                    "$(git config user.email)" \
+                    > "$TMP_FILE"
+                RUNTIME_ARGS+=(--ro-bind "$TMP_FILE" "/etc/gitconfig")
+              '')
+              (add-cleanup ''
+                rm -f "$TMP_FILE"
+              '')
+
+              # must set /nix/var/nix to ro manually because mounting the socket creates that dir as
+              # rw. If this dir is rw then nix will attempt to use a local store instead of daemon
+              # also execute the channel to populate the git config.
+              (wrap-entry (entry: ''
+                chmod -w /nix/var/nix || true
+                ${entry}
+              ''))
+              (write-text "/etc/nix/nix.conf" "experimental-features = nix-command flakes")
+            ]
+            ++ (map (p: try-readwrite (noescape p)) [
+              "~/.claude"
+              "~/.claude.json"
+            ])
+            ++ (
+              (map (p: try-readonly (noescape p)) [
+                "/nix/store"
+                "/nix/var/nix/daemon-socket/socket"
+              ])
+            )
+          ))
+        ) { });
+
+      overlays.default = final: prev: {
+        ${pname} = self.lib.makeJailedClaude { pkgs = final; };
+      };
+
+      packages = forEachSystem (pkgs: {
+        default = pkgs.${pname};
+      });
+
+      checks = forEachSystem (pkgs: {
+        pre-commit-check = preCommit pkgs ./.;
+      });
+
+      devShells = forEachSystem (
+        pkgs:
+        let
+          inherit (preCommit pkgs builtins.emptyFile) shellHook enabledPackages;
+        in
+        {
+          default = pkgs.mkShell {
+            inherit shellHook;
+            packages = [ pkgs.${pname} ] ++ enabledPackages;
+          };
+        }
+      );
+    };
+}
