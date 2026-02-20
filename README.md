@@ -16,7 +16,7 @@ nix run github:timquelch/jailed-claude
 
 Or add the package to a devenv or nixos packages, add the overlays to nixpkgs config, or build a custom package with the `lib.makeJailedClaude` function.
 
-The `claude-code` package defaults to the version pinned by the [llm-agents.nix](https://github.com/numtide/llm-agents.nix) input. To use a different version, include your own `claude-code` in the overlay set or override the package with something like `jailed-claude.override { claude-code = my-specific-version }`.
+The overlay uses the `claude-code` version pinned by the [llm-agents.nix](https://github.com/numtide/llm-agents.nix) input. To use a different version, pass a `pkgs` set with your own `claude-code` to `lib.makeJailedClaude`, or override the resulting package.
 
 ## What's in the sandbox
 

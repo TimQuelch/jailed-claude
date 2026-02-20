@@ -22,7 +22,7 @@ All code lives in `flake.nix`. Three main outputs:
 
 1. **`lib.makeJailedClaude`** — Takes `{ pkgs, extraPkgs ? [] }`, returns a jailed package. Uses `jail-nix.lib.extend` (with empty `basePermissions`) to create a jail around `claude-code` with combinators for network access, timezone, CWD mounting, bundled CLI tools (bash, curl, fd, git, jq, nix, ripgrep, wget, etc.), git author forwarding, a nix.conf enabling `nix-command flakes`, read-write access to `~/.claude` and `~/.claude.json`, and read-only access to `/nix/store` and the nix daemon socket.
 
-2. **`overlays.default`** — Nix overlay exposing `jailed-claude` in pkgs. The `claude-code` dependency defaults to the version pinned in the `llm-agents` input but can be overridden by including a `claude-code` package in the consuming overlay set.
+2. **`overlays.default`** — Nix overlay exposing `jailed-claude` in pkgs. The overlay explicitly passes the `claude-code` package from the `llm-agents` input into `makeJailedClaude` via the `pkgs` set. Consumers can override by passing a different `claude-code` in `pkgs`.
 
 3. **`packages.default` / `devShells.default`** — Standard flake outputs for building and developing.
 

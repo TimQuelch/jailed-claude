@@ -86,9 +86,7 @@
             wget,
             which,
             xz,
-            # default to the pinned llm-agents version, however if using the overlay, then this will
-            # be overwritten by any claude-code package that is included in the final overlay set.
-            claude-code ? llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.claude-code,
+            claude-code,
           }:
           (jail pname claude-code (
             with jail.combinators;
@@ -163,7 +161,11 @@
         ) { });
 
       overlays.default = final: prev: {
-        ${pname} = self.lib.makeJailedClaude { pkgs = final; };
+        ${pname} = self.lib.makeJailedClaude {
+          pkgs = final // {
+            claude-code = llm-agents.packages.${final.stdenv.hostPlatform.system}.claude-code;
+          };
+        };
       };
 
       packages = forEachSystem (pkgs: {
