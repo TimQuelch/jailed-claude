@@ -65,6 +65,7 @@
         (pkgs.callPackage (
           {
             bashInteractive,
+            claude-code,
             curl,
             diffutils,
             fd,
@@ -86,7 +87,6 @@
             wget,
             which,
             xz,
-            claude-code,
           }:
           (jail pname claude-code (
             with jail.combinators;
@@ -100,6 +100,7 @@
               (add-pkg-deps (
                 [
                   bashInteractive
+                  claude-code
                   curl
                   diffutils
                   fd
