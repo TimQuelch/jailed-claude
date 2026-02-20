@@ -68,19 +68,24 @@
             curl,
             diffutils,
             fd,
+            file,
             findutils,
             gawkInteractive,
             git,
             gnugrep,
+            gnused,
             gnutar,
             gzip,
             jq,
+            less,
             nix,
             ps,
             ripgrep,
+            tree,
             unzip,
             wget,
             which,
+            xz,
             # default to the pinned llm-agents version, however if using the overlay, then this will
             # be overwritten by any claude-code package that is included in the final overlay set.
             claude-code ? llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.claude-code,
@@ -100,19 +105,24 @@
                   curl
                   diffutils
                   fd
+                  file
                   findutils
                   gawkInteractive
                   git
                   gnugrep
+                  gnused
                   gnutar
                   gzip
                   jq
+                  less
                   nix
                   ps
                   ripgrep
+                  tree
                   unzip
                   wget
                   which
+                  xz
                 ]
                 ++ extraPkgs
               ))
