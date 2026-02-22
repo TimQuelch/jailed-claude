@@ -93,6 +93,7 @@
             uv,
             wget,
             which,
+            xdg-dbus-proxy,
             xz,
           }:
           (jail binName claude-code (
@@ -112,6 +113,7 @@
               # - claude-code itself so tools can make recursive calls to claude
               # - nix (uses external daemon if available)
               # - python3, nodejs, uv for tools to use
+              # - xdg-dbus-proxy for notifications
               (add-pkg-deps (
                 [
                   bashInteractive
@@ -140,6 +142,7 @@
                   uv
                   wget
                   which
+                  xdg-dbus-proxy
                   xz
                 ]
                 ++ extraPkgs
