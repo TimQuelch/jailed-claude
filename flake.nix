@@ -165,6 +165,12 @@
 
               (write-text "/etc/nix/nix.conf" "experimental-features = nix-command flakes")
             ]
+            ++ (map (v: try-fwd-env v) [
+              "CLAUDE_CODE_SSE_PORT"
+              "ENABLE_IDE_INTEGRATION"
+              "TERM_PROGRAM"
+              "FORCE_CODE_TERMINAL"
+            ])
             ++ (map (p: try-readwrite (noescape p)) (
               [
                 "~/.claude"
