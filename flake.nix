@@ -147,6 +147,12 @@
                 )
               '')
 
+              # ensure claude config exists before mounting
+              (add-runtime ''
+                mkdir -p ~/.claude
+                [ -f ~/.claude.json ] || echo '{}' > ~/.claude.json
+              '')
+
               # must set /nix/var/nix to ro manually because mounting the socket creates that dir as
               # rw. If this dir is rw then nix will attempt to use a local store instead of daemon
               # also execute the channel to populate the git config.
@@ -156,7 +162,7 @@
               ''))
               (write-text "/etc/nix/nix.conf" "experimental-features = nix-command flakes")
             ]
-            ++ (map (p: try-readwrite (noescape p)) [
+            ++ (map (p: readwrite (noescape p)) [
               "~/.claude"
               "~/.claude.json"
             ])
