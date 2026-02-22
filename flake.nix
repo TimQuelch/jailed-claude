@@ -56,6 +56,7 @@
           extraReadPaths ? [ ],
           extraReadWritePaths ? [ ],
           wrapper ? null,
+          persistHome ? false,
         }:
         let
           jail = jail-nix.lib.init pkgs;
@@ -98,9 +99,12 @@
               network
               time-zone
               no-new-session
-              mount-cwd
               notifications
               open-urls-in-browser
+            ]
+            ++ (pkgs.lib.optionals persistHome [ (persist-home pname) ])
+            ++ [
+              mount-cwd
 
               # includes (but not limited to)
               # - basic cli toosl
