@@ -57,13 +57,7 @@
           extraReadWritePaths ? [ ],
         }:
         let
-          jail = jail-nix.lib.extend {
-            inherit pkgs;
-            # strip out the default and configure it all in the function the default base includes
-            # mounting only the wrapped exes closure from the nix store, but it's much easier if we
-            # just mount the entire store.
-            basePermissions = combinators: [ ];
-          };
+          jail = jail-nix.lib.init pkgs;
         in
         (pkgs.callPackage (
           {
@@ -99,8 +93,6 @@
           (jail binName claude-code (
             with jail.combinators;
             [
-              base # from default basePermisisons
-              fake-passwd # from default basePermisisons
               (ro-bind "${coreutils}/bin/env" "/usr/bin/env") # some scripts rely on this
               network
               time-zone
