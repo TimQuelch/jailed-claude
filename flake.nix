@@ -105,6 +105,13 @@
               time-zone
               no-new-session
               mount-cwd
+              notifications
+
+              # includes (but not limited to)
+              # - basic cli toosl
+              # - claude-code itself so tools can make recursive calls to claude
+              # - nix (uses external daemon if available)
+              # - python3, nodejs, uv for tools to use
               (add-pkg-deps (
                 [
                   bashInteractive
@@ -164,12 +171,15 @@
               ''))
               (write-text "/etc/nix/nix.conf" "experimental-features = nix-command flakes")
             ]
-            ++ (map (p: readwrite (noescape p)) [
-              "~/.claude"
-              "~/.claude.json"
-            ])
-            ++ (map (p: try-readwrite (noescape p)) extraReadWritePaths)
+            ++ (map (p: try-readwrite (noescape p)) (
+              [
+                "~/.claude"
+                "~/.claude.json"
+              ]
+              ++ extraReadWritePaths
+            ))
             ++ (map (p: try-readonly (noescape p)) (
+              # mount the nix store and the daemon socket if they are available
               [
                 "/nix/store"
                 "/nix/var/nix/daemon-socket/socket"
