@@ -136,17 +136,15 @@
                 ++ extraPkgs
               ))
 
-              # forward git config
+              # forward git user config, no other config is forwarded
               (add-runtime ''
-                TMP_FILE=$(mktemp)
-                printf "[user]\nname = %s\nemail = %s" \
-                    "$(git config user.name)" \
-                    "$(git config user.email)" \
-                    > "$TMP_FILE"
-                RUNTIME_ARGS+=(--ro-bind "$TMP_FILE" "/etc/gitconfig")
-              '')
-              (add-cleanup ''
-                rm -f "$TMP_FILE"
+                RUNTIME_ARGS+=(
+                  --setenv GIT_CONFIG_COUNT 2
+                  --setenv GIT_CONFIG_KEY_0 user.name
+                  --setenv GIT_CONFIG_VALUE_0 "$(git config user.name)"
+                  --setenv GIT_CONFIG_KEY_1 user.email
+                  --setenv GIT_CONFIG_VALUE_1 "$(git config user.email)"
+                )
               '')
 
               # must set /nix/var/nix to ro manually because mounting the socket creates that dir as
