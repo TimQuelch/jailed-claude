@@ -107,6 +107,7 @@
               no-new-session
               mount-cwd
               notifications
+              open-urls-in-browser
 
               # includes (but not limited to)
               # - basic cli toosl
