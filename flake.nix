@@ -81,11 +81,13 @@
             jq,
             less,
             nix,
+            nodejs,
             ps,
             python3,
             ripgrep,
             tree,
             unzip,
+            uv,
             wget,
             which,
             xz,
@@ -104,6 +106,7 @@
                 [
                   bashInteractive
                   claude-code
+                  coreutils
                   curl
                   diffutils
                   fd
@@ -118,11 +121,13 @@
                   jq
                   less
                   nix
+                  nodejs
                   ps
                   python3
                   ripgrep
                   tree
                   unzip
+                  uv
                   wget
                   which
                   xz
