@@ -53,6 +53,8 @@
         {
           pkgs,
           extraPkgs ? [ ],
+          extraReadPaths ? [ ],
+          extraReadWritePaths ? [ ],
         }:
         let
           jail = jail-nix.lib.extend {
@@ -166,12 +168,14 @@
               "~/.claude"
               "~/.claude.json"
             ])
-            ++ (
-              (map (p: try-readonly (noescape p)) [
+            ++ (map (p: try-readwrite (noescape p)) extraReadWritePaths)
+            ++ (map (p: try-readonly (noescape p)) (
+              [
                 "/nix/store"
                 "/nix/var/nix/daemon-socket/socket"
-              ])
-            )
+              ]
+              ++ extraReadPaths
+            ))
           ))
         ) { });
 
