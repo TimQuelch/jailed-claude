@@ -55,6 +55,7 @@
           extraPkgs ? [ ],
           extraReadPaths ? [ ],
           extraReadWritePaths ? [ ],
+          wrapper ? null,
         }:
         let
           jail = jail-nix.lib.init pkgs;
@@ -158,13 +159,6 @@
                 [ -f ~/.claude.json ] || echo '{}' > ~/.claude.json
               '')
 
-              # must set /nix/var/nix to ro manually because mounting the socket creates that dir as
-              # rw. If this dir is rw then nix will attempt to use a local store instead of daemon
-              # also execute the channel to populate the git config.
-              (wrap-entry (entry: ''
-                chmod -w /nix/var/nix || true
-                ${entry}
-              ''))
               (write-text "/etc/nix/nix.conf" "experimental-features = nix-command flakes")
             ]
             ++ (map (p: try-readwrite (noescape p)) (
@@ -182,6 +176,17 @@
               ]
               ++ extraReadPaths
             ))
+            ++ (if builtins.isNull wrapper then [ ] else [ (wrap-entry wrapper) ])
+            ++ [
+              # Must set /nix/var/nix to ro manually because mounting the socket creates that dir as
+              # rw. If this dir is rw then nix will attempt to use a local store instead of daemon
+              # also execute the channel to populate the git config. This is placed after the user
+              # provided wrapper to ensure that nix is usable inside any user provided wrapper
+              (wrap-entry (entry: ''
+                chmod -w /nix/var/nix || true
+                ${entry}
+              ''))
+            ]
           ))
         ) { });
 
