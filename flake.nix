@@ -46,6 +46,7 @@
         };
 
       pname = "jailed-claude";
+      binName = "claude";
     in
     {
       lib.makeJailedClaude =
@@ -92,7 +93,7 @@
             which,
             xz,
           }:
-          (jail pname claude-code (
+          (jail binName claude-code (
             with jail.combinators;
             [
               base # from default basePermisisons
