@@ -55,6 +55,8 @@
           extraPkgs ? [ ],
           extraReadPaths ? [ ],
           extraReadWritePaths ? [ ],
+          fwdEnv ? [ ],
+          setEnv ? { },
           wrapper ? null,
           persistHome ? false,
         }:
@@ -165,9 +167,18 @@
 
               (write-text "/etc/nix/nix.conf" "experimental-features = nix-command flakes")
             ]
-            ++ (map (v: try-fwd-env v) [
-              "COLORTERM"
-            ])
+            ++ (pkgs.lib.mapAttrsToList (k: v: set-env k v) (
+              {
+                ENABLE_LSP_TOOL = "1";
+              }
+              // setEnv
+            ))
+            ++ (
+              map (v: try-fwd-env v) [
+                "COLORTERM"
+              ]
+              ++ fwdEnv
+            )
             ++ (map (p: try-readwrite (noescape p)) (
               [
                 "~/.claude"
