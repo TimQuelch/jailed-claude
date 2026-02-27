@@ -165,6 +165,9 @@
 
               (write-text "/etc/nix/nix.conf" "experimental-features = nix-command flakes")
             ]
+            ++ (map (v: try-fwd-env v) [
+              "COLORTERM"
+            ])
             ++ (map (p: try-readwrite (noescape p)) (
               [
                 "~/.claude"
