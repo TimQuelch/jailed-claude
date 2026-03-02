@@ -209,10 +209,9 @@
         ) { });
 
       overlays.default = final: prev: {
+        claude-code = llm-agents.packages.${final.stdenv.hostPlatform.system}.claude-code;
         ${pname} = self.lib.makeJailedClaude {
-          pkgs = final // {
-            claude-code = llm-agents.packages.${final.stdenv.hostPlatform.system}.claude-code;
-          };
+          pkgs = final;
         };
       };
 
